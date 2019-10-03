@@ -1,29 +1,21 @@
-import time
+import time, types
 
 from canal.client import Client
 from canal.protocol import EntryProtocol_pb2
 from canal.protocol import CanalProtocol_pb2
 from .events import Event
 from . import events
+from .eventimpl import EventImpl
+from .dispatch import Dispatch
 
-class BinlogDispatch:
+class BinlogDispatch(Dispatch):
     client = None
-    events = {}
     def __init__(self, host, port):
         self.client = Client()
         self.client.connect(host=host, port=port)
         self.client.check_valid(username=b'', password=b'')
         self.client.subscribe(client_id=b'1001', destination=b'example', filter=b'.*\\..*')
-
-    def addEventListener(self, event_name, handle):
-        if not event_name in self.events.keys():
-            self.events[event_name] = []
-        self.events[event_name].append(handle)
-    def dispatch(self, event_name, event:Event):
-        if event_name in self.events.keys():
-            for handle in self.events[event_name]:
-                handle(event)
-    def Listen(self):
+    def Start(self):
         while True:
             message = self.client.get(100)
             entries = message['entries']
@@ -44,30 +36,18 @@ class BinlogDispatch:
                         for column in row.beforeColumns:
                             format_data[column.name] = column.value
                         #派遣事件
-                        data = {}
-                        data["data"]  = format_data
-                        data["table"] = table
-                        data["db"] = database
-                        event = Event(data)
+                        event = Event(format_data, table, database)
                         self.dispatch(events.DELETE_EVENT, event)
                     elif event_type == EntryProtocol_pb2.EventType.INSERT:
                         for column in row.afterColumns:
                             format_data[column.name] = column.value
-                        data = {}
-                        data["data"]  = format_data
-                        data["table"] = table
-                        data["db"] = database
-                        event = Event(data)
-                        self.dispatch(events.INSERT_EVENT)
+                        event = Event(format_data, table, database)
+                        self.dispatch(events.INSERT_EVENT, event)
                     elif event_type == EntryProtocol_pb2.EventType.UPDATE:
                          for column in row.afterColumns:
                             format_data[column.name] = column.value
-                         data = {}
-                         data["data"]  = format_data
-                         data["table"] = table
-                         data["db"] = database
-                         event = Event(data)
-                         self.dispatch(events.UPDATE_EVENT)
+                         event = Event(format_data, table, database)
+                         self.dispatch(events.UPDATE_EVENT, event)
                     else:
                         format_data['before'] = format_data['after'] = dict()
                         for column in row.beforeColumns:
@@ -80,7 +60,6 @@ class BinlogDispatch:
                         event_type=event_type,
                         data=format_data,
                     )
-                    print(data)
             time.sleep(1)
 
-self.client.disconnect()
+        self.client.disconnect()

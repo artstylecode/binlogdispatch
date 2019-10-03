@@ -1,0 +1,5 @@
+canal_dispatch.egg-info
+dist
+build
+canalDispatch/__pycache__ 
+example/__pycache__/
