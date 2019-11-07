@@ -22,7 +22,7 @@ class Dispatch():
                 if isinstance(instance, EventImpl):
                     if event_name == events.INSERT_EVENT:
                         instance.insertHandle(event)
-                    elif event_name == events.UpdateEvent:
+                    elif event_name == events.UPDATE_EVENT:
                         instance.updateHandle(event)
                     elif event_name == events.DELETE_EVENT:
                         instance.deleteHandle(event)

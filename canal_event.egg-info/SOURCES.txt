@@ -1,0 +1,12 @@
+README.md
+setup.py
+canalDispatch/__init__.py
+canalDispatch/binlogdispatch.py
+canalDispatch/dispatch.py
+canalDispatch/eventimpl.py
+canalDispatch/events.py
+canalDispatch/example.py
+canal_event.egg-info/PKG-INFO
+canal_event.egg-info/SOURCES.txt
+canal_event.egg-info/dependency_links.txt
+canal_event.egg-info/top_level.txt
